@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Watch Party App</title>
+    <style>
+      body {
+        background: #111;
+        color: #0f0; /* Matrix green for a pro feel */
+        font-family: 'Courier New', Courier, monospace;
+        text-align: center;
+        padding: 20px;
+        overflow: hidden;
+      }
+      .container {
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 10px;
+        background: #1a1a1a;
+      }
+      input {
+        background: #222;
+        color: #0f0;
+        border: 1px solid #444;
+        padding: 8px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+      #status {
+        margin-top: 20px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>ROOM ID</h3>
+      <input type="text" id="roomInput" value="movie-night" />
+      <p>Controls: [O] Video | [S] Subs | [Space] Play/Pause</p>
+      <div id="status">INITIALIZING...</div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+      const io = require("socket.io-client");
+      const mpvAPI = require("node-mpv");
+      const path = require("path");
+
+      // 1. Setup paths correctly (Handles spaces in folder names)
+      const mpvPath = path.join(__dirname, "mpv.exe");
+      console.log("MPV Path:", mpvPath);
+
+      // 2. Initialize MPV Engine
+      const mpv = new mpvAPI({
+        binary: mpvPath,
+        debug: true,
+        args: [
+            "--focus",         // Grabs OS focus on launch
+            "--force-window",  // Shows window immediately
+            "--osd-level=1"    // Shows seek progress
+        ]
+      });
+
+      // 3. Socket Connection (Update 'localhost' to your Server IP when ready)
+      const socket = io("http://localhost:3000");
+      let isRemoteAction = false;
+
+      // --- ENGINE EVENTS ---
+
+      mpv.on("ready", () => {
+        console.log("MPV Ready");
+        document.getElementById("status").innerText = "Ready to Watch";
+      });
+
+      // POP TO FRONT LOGIC:
+      // When a video starts, force it to the top for 2 seconds then release it.
+      mpv.on('file-loaded', () => {
+        console.log("Video started. Popping to front...");
+        mpv.setProperty('ontop', true);
+        
+        setTimeout(() => {
+          mpv.setProperty('ontop', false);
+          console.log("Focus released.");
+        }, 2000);
+      });
+
+      // --- KEYBOARD COMMANDS ---
+
+      window.addEventListener("keydown", async (e) => {
+        const key = e.key.toLowerCase();
+
+        if (key === "o") {
+          const file = await ipcRenderer.invoke("open-file", "video");
+          if (file) {
+            mpv.load(file);
+            // Tells the Electron window to get out of the way
+            ipcRenderer.send('minimize-me'); 
+          }
+        }
+
+        if (key === "s") {
+          const file = await ipcRenderer.invoke("open-file", "subs");
+          if (file) mpv.addSubtitles(file);
+        }
+
+        if (e.key === " ") {
+          mpv.togglePause();
+        }
+      });
+
+      // --- SYNC LOGIC (The Brain) ---
+
+      socket.on("connect", () => {
+        const roomId = document.getElementById("roomInput").value;
+        socket.emit("join-room", roomId);
+        document.getElementById("status").innerText = "Connected to Room: " + roomId;
+      });
+
+      // Detect when WE change the video state
+      mpv.on("statuschange", (status) => {
+        if (isRemoteAction) return;
+        
+        socket.emit("update-state", {
+          roomId: document.getElementById("roomInput").value,
+          currentTime: status["time-pos"],
+          isPaused: status.pause,
+          timestamp: Date.now(), // For latency math
+        });
+      });
+
+      // React when the SERVER tells us someone else changed the state
+      socket.on("sync", (data) => {
+        isRemoteAction = true;
+
+        // LATENCY COMPENSATION:
+        // Calculate how long the message took to arrive
+        const latency = (Date.now() - data.timestamp) / 1000;
+        const targetTime = data.isPaused ? data.currentTime : data.currentTime + latency;
+
+        mpv.getProperty("time-pos").then((currTime) => {
+          // Only seek if we are more than 0.5 seconds out of sync
+          if (Math.abs(currTime - targetTime) > 0.5) {
+            mpv.goToPosition(targetTime);
+          }
+        });
+
+        if (data.isPaused) mpv.pause();
+        else mpv.resume();
+
+        // Prevent feedback loops
+        setTimeout(() => { isRemoteAction = false; }, 500);
+      });
+    </script>
+  </body>
+</html>
