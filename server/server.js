@@ -1,4 +1,7 @@
-const io = require('socket.io')(3000, { cors: { origin: "*" } });
+const PORT = process.env.PORT || 3000; 
+const io = require('socket.io')(PORT, { 
+    cors: { origin: "*" } 
+});
 const rooms = {};
 
 io.on('connection', (socket) => {
@@ -14,4 +17,4 @@ io.on('connection', (socket) => {
         socket.to(data.roomId).emit('sync', data);
     });
 });
-console.log("Server running on port 3000");
+console.log(`Server running on port ${PORT}`);
