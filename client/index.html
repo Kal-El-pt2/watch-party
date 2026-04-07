@@ -1,43 +1,82 @@
 <!doctype html>
 <html>
   <head>
-    <title>Watch Party App</title>
+    <title>Watch Party</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
     <style>
-      body {
-        background: #111;
-        color: #0f0; /* Matrix green for a pro feel */
-        font-family: 'Courier New', Courier, monospace;
-        text-align: center;
-        padding: 20px;
-        overflow: hidden;
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --red: #e8000d; --red-dim: #8a0008; --gold: #c9a84c; --bg: #0a0a0b;
+        --surface: #111114; --surface2: #18181c; --border: rgba(255, 255, 255, 0.06);
+        --border-bright: rgba(255, 255, 255, 0.14); --text: #e8e4dc; --muted: #5a5750;
+        --mono: "DM Mono", monospace; --display: "Bebas Neue", sans-serif;
       }
-      .container {
-        border: 1px solid #333;
-        padding: 20px;
-        border-radius: 10px;
-        background: #1a1a1a;
-      }
-      input {
-        background: #222;
-        color: #0f0;
-        border: 1px solid #444;
-        padding: 8px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-      }
-      #status {
-        margin-top: 20px;
-        font-weight: bold;
-        text-transform: uppercase;
-      }
+      html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--mono); display: flex; align-items: center; justify-content: center; }
+      body::before { content: ""; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity: 0.025; pointer-events: none; z-index: 100; }
+      .shell { width: 380px; position: relative; animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      .filmstrip { display: flex; margin-bottom: 20px; overflow: hidden; border-radius: 2px; }
+      .filmstrip-track { flex: 1; height: 28px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; padding: 0 6px; gap: 5px; }
+      .filmstrip-hole { width: 10px; height: 16px; border-radius: 2px; background: var(--bg); flex-shrink: 0; }
+      .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px 28px 28px; position: relative; }
+      .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--red); }
+      .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+      .title { font-family: var(--display); font-size: 52px; letter-spacing: 0.04em; line-height: 1; color: var(--text); }
+      .title span { color: var(--red); }
+      .badge { font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border-bright); border-radius: 2px; margin-bottom: 6px; }
+      .field-label { font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+      .room-wrap { position: relative; margin-bottom: 24px; }
+      .room-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--red-dim); pointer-events: none; font-weight: 300; }
+      #roomInput { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 3px; padding: 12px 14px 12px 30px; font-family: var(--mono); font-size: 14px; outline: none; transition: border-color 0.2s; caret-color: var(--red); }
+      #roomInput:focus { border-color: var(--red-dim); }
+      .status-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 24px; transition: 0.3s; }
+      .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+      .status-dot.live { background: var(--red); box-shadow: 0 0 0 3px rgba(232, 0, 13, 0.15); animation: pulse 2s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      #status { font-size: 12px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; flex: 1; }
+      .status-bar.connected #status { color: var(--text); }
+      .shortcuts { border-top: 1px solid var(--border); padding-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+      .shortcut { display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.7; }
+      .key { width: 36px; height: 36px; background: var(--surface2); border: 1px solid var(--border-bright); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
+      .key-label { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; text-align: center; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h3>ROOM ID</h3>
-      <input type="text" id="roomInput" value="movie-night" />
-      <p>Controls: [O] Video | [S] Subs | [Space] Play/Pause</p>
-      <div id="status">INITIALIZING...</div>
+    <div class="shell">
+      <div class="filmstrip">
+        <div class="filmstrip-track">
+          <!-- Filmstrip Holes -->
+          <div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="header">
+          <div class="title">WATCH<br /><span>PARTY</span></div>
+          <div class="badge">v1.0</div>
+        </div>
+        <div class="field-label">Room ID</div>
+        <div class="room-wrap">
+          <span class="room-prefix">#</span>
+          <input type="text" id="roomInput" value="movie-night" spellcheck="false" autocomplete="off" />
+        </div>
+        <div class="status-bar" id="statusBar">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="status">INITIALIZING...</span>
+        </div>
+        <div class="shortcuts">
+          <div class="shortcut"><div class="key">O</div><div class="key-label">Video</div></div>
+          <div class="shortcut"><div class="key">S</div><div class="key-label">Subs</div></div>
+          <div class="shortcut"><div class="key">SPC</div><div class="key-label">Pause</div></div>
+        </div>
+      </div>
+
+      <div class="filmstrip" style="margin-top: 20px; margin-bottom: 0;">
+        <div class="filmstrip-track">
+          <div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -46,99 +85,85 @@
       const mpvAPI = require("node-mpv");
       const path = require("path");
 
-      // 1. Setup paths correctly (Handles spaces in folder names)
-      const mpvPath = path.join(__dirname, "mpv.exe");
-      console.log("MPV Path:", mpvPath);
+      const statusText = document.getElementById("status");
+      const statusDot = document.getElementById("statusDot");
+      const statusBar = document.getElementById("statusBar");
 
-      // 2. Initialize MPV Engine
+      function updateUIStatus(text, isLive) {
+        statusText.innerText = text;
+        if (isLive) {
+            statusDot.classList.add("live");
+            statusBar.classList.add("connected");
+        } else {
+            statusDot.classList.remove("live");
+            statusBar.classList.remove("connected");
+        }
+      }
+
+      // 1. Setup paths correctly
+      const mpvPath = path.join(__dirname, "mpv.exe");
+
+      // 2. Initialize MPV Engine (Your Original Top-Level logic)
       const mpv = new mpvAPI({
         binary: mpvPath,
         debug: true,
-        args: [
-            "--focus",         // Grabs OS focus on launch
-            "--force-window",  // Shows window immediately
-            "--osd-level=1"    // Shows seek progress
-        ]
+        args: ["--focus", "--force-window", "--osd-level=1"]
       });
 
-      // 3. Socket Connection (Update 'localhost' to your Server IP when ready)
+      // 3. Socket Connection
       const socket = io("http://localhost:3000");
       let isRemoteAction = false;
 
       // --- ENGINE EVENTS ---
-
       mpv.on("ready", () => {
-        console.log("MPV Ready");
-        document.getElementById("status").innerText = "Ready to Watch";
+        updateUIStatus("READY TO WATCH", true);
       });
 
-      // POP TO FRONT LOGIC:
-      // When a video starts, force it to the top for 2 seconds then release it.
       mpv.on('file-loaded', () => {
-        console.log("Video started. Popping to front...");
         mpv.setProperty('ontop', true);
-        
-        setTimeout(() => {
-          mpv.setProperty('ontop', false);
-          console.log("Focus released.");
-        }, 2000);
+        setTimeout(() => mpv.setProperty('ontop', false), 2000);
       });
 
       // --- KEYBOARD COMMANDS ---
-
       window.addEventListener("keydown", async (e) => {
         const key = e.key.toLowerCase();
-
         if (key === "o") {
           const file = await ipcRenderer.invoke("open-file", "video");
           if (file) {
             mpv.load(file);
-            // Tells the Electron window to get out of the way
             ipcRenderer.send('minimize-me'); 
           }
         }
-
         if (key === "s") {
           const file = await ipcRenderer.invoke("open-file", "subs");
           if (file) mpv.addSubtitles(file);
         }
-
-        if (e.key === " ") {
-          mpv.togglePause();
-        }
+        if (e.key === " ") mpv.togglePause();
       });
 
-      // --- SYNC LOGIC (The Brain) ---
-
+      // --- SYNC LOGIC ---
       socket.on("connect", () => {
         const roomId = document.getElementById("roomInput").value;
         socket.emit("join-room", roomId);
-        document.getElementById("status").innerText = "Connected to Room: " + roomId;
+        updateUIStatus("CONNECTED · " + roomId, true);
       });
 
-      // Detect when WE change the video state
       mpv.on("statuschange", (status) => {
         if (isRemoteAction) return;
-        
         socket.emit("update-state", {
           roomId: document.getElementById("roomInput").value,
           currentTime: status["time-pos"],
           isPaused: status.pause,
-          timestamp: Date.now(), // For latency math
+          timestamp: Date.now(),
         });
       });
 
-      // React when the SERVER tells us someone else changed the state
       socket.on("sync", (data) => {
         isRemoteAction = true;
-
-        // LATENCY COMPENSATION:
-        // Calculate how long the message took to arrive
         const latency = (Date.now() - data.timestamp) / 1000;
         const targetTime = data.isPaused ? data.currentTime : data.currentTime + latency;
 
         mpv.getProperty("time-pos").then((currTime) => {
-          // Only seek if we are more than 0.5 seconds out of sync
           if (Math.abs(currTime - targetTime) > 0.5) {
             mpv.goToPosition(targetTime);
           }
@@ -147,9 +172,14 @@
         if (data.isPaused) mpv.pause();
         else mpv.resume();
 
-        // Prevent feedback loops
         setTimeout(() => { isRemoteAction = false; }, 500);
       });
+
+      document.getElementById("roomInput").onchange = () => {
+        const roomId = document.getElementById("roomInput").value;
+        socket.emit("join-room", roomId);
+        updateUIStatus("SWITCHED · " + roomId, true);
+      };
     </script>
   </body>
 </html>
