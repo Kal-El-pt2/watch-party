@@ -101,7 +101,11 @@
       }
 
       // 1. Setup paths correctly
-      const mpvPath = path.join(__dirname, "mpv.exe");
+      // Replace your old mpvPath line with this one:
+const isPackaged = !process.env.npm_lifecycle_script; 
+const mpvPath = isPackaged 
+    ? path.join(process.resourcesPath, "mpv.exe") // For the built .exe
+    : path.join(__dirname, "mpv.exe");           // For development (npm start)
 
       // 2. Initialize MPV Engine (Your Original Top-Level logic)
       const mpv = new mpvAPI({
@@ -111,7 +115,7 @@
       });
 
       // 3. Socket Connection
-      const socket = io("http://localhost:3000");
+      const socket = io("https://watch-party-6w4u.onrender.com");
       let isRemoteAction = false;
 
       // --- ENGINE EVENTS ---
