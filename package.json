@@ -1,15 +1,31 @@
 {
   "name": "watch-party",
   "version": "1.0.0",
+  "description": "Watch movies with friends in sync",
   "main": "client/main.js",
   "scripts": {
     "start": "electron .",
-    "server": "node server/server.js"
+    "server": "node server/server.js",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.watchparty.app",
+    "productName": "WatchParty",
+    "win": {
+      "target": "portable"
+    },
+    "extraResources": [
+      "client/mpv.exe",
+      "client/mpv-1.dll"
+    ]
   },
   "dependencies": {
     "electron": "^31.0.0",
-    "node-mpv": "^2.1.0",
+    "node-mpv": "^3.0.0",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
   }
 }
