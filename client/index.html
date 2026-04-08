@@ -3,43 +3,245 @@
   <head>
     <title>Watch Party</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      :root {
-        --red: #e8000d; --red-dim: #8a0008; --gold: #c9a84c; --bg: #0a0a0b;
-        --surface: #111114; --surface2: #18181c; --border: rgba(255, 255, 255, 0.06);
-        --border-bright: rgba(255, 255, 255, 0.14); --text: #e8e4dc; --muted: #5a5750;
-        --mono: "DM Mono", monospace; --display: "Bebas Neue", sans-serif;
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-      html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--mono); display: flex; align-items: center; justify-content: center; }
-      body::before { content: ""; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity: 0.025; pointer-events: none; z-index: 100; }
-      .shell { width: 380px; position: relative; animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
-      @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-      .filmstrip { display: flex; margin-bottom: 20px; overflow: hidden; border-radius: 2px; }
-      .filmstrip-track { flex: 1; height: 28px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; padding: 0 6px; gap: 5px; }
-      .filmstrip-hole { width: 10px; height: 16px; border-radius: 2px; background: var(--bg); flex-shrink: 0; }
-      .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px 28px 28px; position: relative; }
-      .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--red); }
-      .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
-      .title { font-family: var(--display); font-size: 52px; letter-spacing: 0.04em; line-height: 1; color: var(--text); }
-      .title span { color: var(--red); }
-      .badge { font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border-bright); border-radius: 2px; margin-bottom: 6px; }
-      .field-label { font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-      .room-wrap { position: relative; margin-bottom: 24px; }
-      .room-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--red-dim); pointer-events: none; font-weight: 300; }
-      #roomInput { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 3px; padding: 12px 14px 12px 30px; font-family: var(--mono); font-size: 14px; outline: none; transition: border-color 0.2s; caret-color: var(--red); }
-      #roomInput:focus { border-color: var(--red-dim); }
-      .status-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 24px; transition: 0.3s; }
-      .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
-      .status-dot.live { background: var(--red); box-shadow: 0 0 0 3px rgba(232, 0, 13, 0.15); animation: pulse 2s infinite; }
-      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      #status { font-size: 12px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; flex: 1; }
-      .status-bar.connected #status { color: var(--text); }
-      .shortcuts { border-top: 1px solid var(--border); padding-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-      .shortcut { display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.7; }
-      .key { width: 36px; height: 36px; background: var(--surface2); border: 1px solid var(--border-bright); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); }
-      .key-label { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; text-align: center; }
+      :root {
+        --red: #e8000d;
+        --red-dim: #8a0008;
+        --gold: #c9a84c;
+        --bg: #0a0a0b;
+        --surface: #111114;
+        --surface2: #18181c;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-bright: rgba(255, 255, 255, 0.14);
+        --text: #e8e4dc;
+        --muted: #5a5750;
+        --mono: "DM Mono", monospace;
+        --display: "Bebas Neue", sans-serif;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+        opacity: 0.025;
+        pointer-events: none;
+        z-index: 100;
+      }
+      .shell {
+        width: 380px;
+        position: relative;
+        animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .filmstrip {
+        display: flex;
+        margin-bottom: 20px;
+        overflow: hidden;
+        border-radius: 2px;
+      }
+      .filmstrip-track {
+        flex: 1;
+        height: 28px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 6px;
+        gap: 5px;
+      }
+      .filmstrip-hole {
+        width: 10px;
+        height: 16px;
+        border-radius: 2px;
+        background: var(--bg);
+        flex-shrink: 0;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 32px 28px 28px;
+        position: relative;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--red);
+      }
+      .header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      .title {
+        font-family: var(--display);
+        font-size: 52px;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        color: var(--text);
+      }
+      .title span {
+        color: var(--red);
+      }
+      .badge {
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border: 1px solid var(--border-bright);
+        border-radius: 2px;
+        margin-bottom: 6px;
+      }
+      .field-label {
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .room-wrap {
+        position: relative;
+        margin-bottom: 24px;
+      }
+      .room-prefix {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 13px;
+        color: var(--red-dim);
+        pointer-events: none;
+        font-weight: 300;
+      }
+      #roomInput {
+        width: 100%;
+        background: var(--surface2);
+        color: var(--text);
+        border: 1px solid var(--border-bright);
+        border-radius: 3px;
+        padding: 12px 14px 12px 30px;
+        font-family: var(--mono);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        caret-color: var(--red);
+      }
+      #roomInput:focus {
+        border-color: var(--red-dim);
+      }
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        margin-bottom: 24px;
+        transition: 0.3s;
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--muted);
+        flex-shrink: 0;
+      }
+      .status-dot.live {
+        background: var(--red);
+        box-shadow: 0 0 0 3px rgba(232, 0, 13, 0.15);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      #status {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+        flex: 1;
+      }
+      .status-bar.connected #status {
+        color: var(--text);
+      }
+      .shortcuts {
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .shortcut {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        opacity: 0.7;
+      }
+      .key {
+        width: 36px;
+        height: 36px;
+        background: var(--surface2);
+        border: 1px solid var(--border-bright);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--gold);
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+      }
+      .key-label {
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+        text-transform: uppercase;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -47,7 +249,21 @@
       <div class="filmstrip">
         <div class="filmstrip-track">
           <!-- Filmstrip Holes -->
-          <div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
         </div>
       </div>
 
@@ -59,22 +275,51 @@
         <div class="field-label">Room ID</div>
         <div class="room-wrap">
           <span class="room-prefix">#</span>
-          <input type="text" id="roomInput" value="movie-night" spellcheck="false" autocomplete="off" />
+          <input
+            type="text"
+            id="roomInput"
+            value="movie-night"
+            spellcheck="false"
+            autocomplete="off"
+          />
         </div>
         <div class="status-bar" id="statusBar">
           <div class="status-dot" id="statusDot"></div>
           <span id="status">INITIALIZING...</span>
         </div>
         <div class="shortcuts">
-          <div class="shortcut"><div class="key">O</div><div class="key-label">Video</div></div>
-          <div class="shortcut"><div class="key">S</div><div class="key-label">Subs</div></div>
-          <div class="shortcut"><div class="key">SPC</div><div class="key-label">Pause</div></div>
+          <div class="shortcut">
+            <div class="key">O</div>
+            <div class="key-label">Video</div>
+          </div>
+          <div class="shortcut">
+            <div class="key">S</div>
+            <div class="key-label">Subs</div>
+          </div>
+          <div class="shortcut">
+            <div class="key">SPC</div>
+            <div class="key-label">Pause</div>
+          </div>
         </div>
       </div>
 
-      <div class="filmstrip" style="margin-top: 20px; margin-bottom: 0;">
+      <div class="filmstrip" style="margin-top: 20px; margin-bottom: 0">
         <div class="filmstrip-track">
-          <div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div><div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
+          <div class="filmstrip-hole"></div>
         </div>
       </div>
     </div>
@@ -92,26 +337,26 @@
       function updateUIStatus(text, isLive) {
         statusText.innerText = text;
         if (isLive) {
-            statusDot.classList.add("live");
-            statusBar.classList.add("connected");
+          statusDot.classList.add("live");
+          statusBar.classList.add("connected");
         } else {
-            statusDot.classList.remove("live");
-            statusBar.classList.remove("connected");
+          statusDot.classList.remove("live");
+          statusBar.classList.remove("connected");
         }
       }
 
       // 1. Setup paths correctly
       // Replace your old mpvPath line with this one:
-const isPackaged = !process.env.npm_lifecycle_script; 
-const mpvPath = isPackaged 
-    ? path.join(process.resourcesPath, "mpv.exe") // For the built .exe
-    : path.join(__dirname, "mpv.exe");           // For development (npm start)
+      const isPackaged = !process.env.npm_lifecycle_script;
+      const mpvPath = isPackaged
+        ? path.join(process.resourcesPath, "mpv.exe") // For the built .exe
+        : path.join(__dirname, "mpv.exe"); // For development (npm start)
 
       // 2. Initialize MPV Engine (Your Original Top-Level logic)
       const mpv = new mpvAPI({
         binary: mpvPath,
         debug: true,
-        args: ["--focus", "--force-window", "--osd-level=1"]
+        args: ["--focus", "--force-window", "--osd-level=1"],
       });
 
       // 3. Socket Connection
@@ -123,9 +368,9 @@ const mpvPath = isPackaged
         updateUIStatus("READY TO WATCH", true);
       });
 
-      mpv.on('file-loaded', () => {
-        mpv.setProperty('ontop', true);
-        setTimeout(() => mpv.setProperty('ontop', false), 2000);
+      mpv.on("file-loaded", () => {
+        mpv.setProperty("ontop", true);
+        setTimeout(() => mpv.setProperty("ontop", false), 2000);
       });
 
       // --- KEYBOARD COMMANDS ---
@@ -135,7 +380,7 @@ const mpvPath = isPackaged
           const file = await ipcRenderer.invoke("open-file", "video");
           if (file) {
             mpv.load(file);
-            ipcRenderer.send('minimize-me'); 
+            ipcRenderer.send("minimize-me");
           }
         }
         if (key === "s") {
@@ -165,7 +410,9 @@ const mpvPath = isPackaged
       socket.on("sync", (data) => {
         isRemoteAction = true;
         const latency = (Date.now() - data.timestamp) / 1000;
-        const targetTime = data.isPaused ? data.currentTime : data.currentTime + latency;
+        const targetTime = data.isPaused
+          ? data.currentTime
+          : data.currentTime + latency;
 
         mpv.getProperty("time-pos").then((currTime) => {
           if (Math.abs(currTime - targetTime) > 0.5) {
@@ -176,7 +423,9 @@ const mpvPath = isPackaged
         if (data.isPaused) mpv.pause();
         else mpv.resume();
 
-        setTimeout(() => { isRemoteAction = false; }, 500);
+        setTimeout(() => {
+          isRemoteAction = false;
+        }, 500);
       });
 
       document.getElementById("roomInput").onchange = () => {

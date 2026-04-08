@@ -19,12 +19,12 @@
     ]
   },
   "dependencies": {
-    "electron": "^32.0.0",
     "node-mpv": "1.4.3",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
+    "electron": "^32.0.0",
     "electron-builder": "^24.13.3"
   }
 }
