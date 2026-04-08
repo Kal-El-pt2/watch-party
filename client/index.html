@@ -248,7 +248,6 @@
     <div class="shell">
       <div class="filmstrip">
         <div class="filmstrip-track">
-          <!-- Filmstrip Holes -->
           <div class="filmstrip-hole"></div>
           <div class="filmstrip-hole"></div>
           <div class="filmstrip-hole"></div>
@@ -345,25 +344,20 @@
         }
       }
 
-      // 1. Setup paths correctly
-      // Replace your old mpvPath line with this one:
-      const isPackaged = !process.env.npm_lifecycle_script;
-      const mpvPath = isPackaged
-        ? path.join(process.resourcesPath, "mpv.exe") // For the built .exe
-        : path.join(__dirname, "mpv.exe"); // For development (npm start)
+      const mpvPath = process.resourcesPath
+        ? path.join(process.resourcesPath, "mpv.exe")
+        : path.join(__dirname, "mpv.exe");
 
-      // 2. Initialize MPV Engine (Your Original Top-Level logic)
       const mpv = new mpvAPI({
         binary: mpvPath,
+        socket: "\\\\.\\pipe\\mpvserver",
         debug: true,
         args: ["--focus", "--force-window", "--osd-level=1"],
       });
 
-      // 3. Socket Connection
       const socket = io("https://watch-party-6w4u.onrender.com");
       let isRemoteAction = false;
 
-      // --- ENGINE EVENTS ---
       mpv.on("ready", () => {
         updateUIStatus("READY TO WATCH", true);
       });
@@ -373,7 +367,6 @@
         setTimeout(() => mpv.setProperty("ontop", false), 2000);
       });
 
-      // --- KEYBOARD COMMANDS ---
       window.addEventListener("keydown", async (e) => {
         const key = e.key.toLowerCase();
         if (key === "o") {
@@ -390,7 +383,6 @@
         if (e.key === " ") mpv.togglePause();
       });
 
-      // --- SYNC LOGIC ---
       socket.on("connect", () => {
         const roomId = document.getElementById("roomInput").value;
         socket.emit("join-room", roomId);
