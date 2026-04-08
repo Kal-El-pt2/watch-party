@@ -14,8 +14,10 @@
       "target": "portable"
     },
     "extraResources": [
-      "client/mpv.exe",
-      "client/mpv-1.dll"
+      {
+        "from": "client/mpv.exe",
+        "to": "mpv.exe"
+      }
     ]
   },
   "dependencies": {
